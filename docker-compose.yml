@@ -56,5 +56,21 @@ services:
     volumes:
       - ./nginx-logs:/var/log/nginx
 
+  auth-service:
+    build: ./auth-service
+    container_name: auth-service
+    ports:
+      - "3003:3003"
+    environment:
+      PG_HOST: postgres
+      PG_PORT: 5432
+      PG_USER: myuser
+      PG_PASSWORD: mypass
+      PG_DATABASE: shortener
+      JWT_SECRET: mysupersecretkey
+    depends_on:
+      - postgres
+    restart: always
+
 volumes:
   pgdata:
