@@ -1,4 +1,4 @@
-name: CI for URL Shortener
+name: CI Pipeline
 
 on:
   push:
@@ -20,24 +20,28 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
-      - name: Checkout source code
+      - name: 코드 내려받기
         uses: actions/checkout@v3
 
-      - name: Setup Node.js
+      - name: Node.js 설치
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      - name: Install dependencies
-        run: npm install
-        working-directory: ./url-service # 필요에 따라 url-service, auth-service 등 반복
-
-      - name: Run tests
-        run: npm test || echo "No tests implemented"
+      - name: url-service 디렉토리로 이동
         working-directory: ./url-service
+        run: echo "확인용"
+
+      - name: 의존성 설치
+        working-directory: ./url-service
+        run: npm install
+
+      - name: 테스트 실행 (없을 경우 생략됨)
+        working-directory: ./url-service
+        run: npm test || echo "테스트 없음"
