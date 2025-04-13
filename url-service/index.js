@@ -11,29 +11,40 @@ app.use(express.json());
 // 인증된 사용자만 단축 URL 생성 가능
 app.post('/shorten', verifyToken, async (req, res) => {
     const { original_url } = req.body;
-    const user_id = req.user.userId; // JWT에서 추출한 사용자 ID
+    const user_id = req.user.userId;
 
     if (!original_url) {
         return res.status(400).json({ error: 'original_url is required' });
     }
-
-    const short_code = nanoid(8);
-
     try {
-        const query = `
-        INSERT INTO urls (original_url, short_code, user_id)
-        VALUES ($1, $2, $3)
-        RETURNING short_code
-        `;
+      // 1. 같은 유저 + 같은 URL 있는지 확인
+        const existing = await pool.query(
+            `SELECT short_code FROM urls WHERE original_url = $1 AND user_id = $2`,
+            [original_url, user_id]
+        );
+    
+        if (existing.rowCount > 0) {
+            return res.status(200).json({
+                short_url: `http://localhost/${existing.rows[0].short_code}`,
+                code: existing.rows[0].short_code
+            });
+        }
 
-        const result = await pool.query(query, [original_url, short_code, user_id]);
+      // 2. 없으면 새로 생성
+        const short_code = nanoid(8);
+    
+        await pool.query(
+            `INSERT INTO urls (original_url, short_code, user_id)
+            VALUES ($1, $2, $3)`,
+            [original_url, short_code, user_id]
+        );
 
         res.status(201).json({
-        short_url: `http://localhost/${result.rows[0].short_code}`,
-        code: result.rows[0].short_code
+            short_url: `http://localhost/${short_code}`,
+            code: short_code
         });
     } catch (err) {
-        console.error('DB Insert Error:', err);
+        console.error('Shorten Error:', err);
         res.status(500).json({ error: 'Database error' });
     }
 });

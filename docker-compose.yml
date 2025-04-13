@@ -74,5 +74,17 @@ services:
       - postgres
     restart: always
 
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    volumes:
+      - grafana_data:/var/lib/grafana
+    restart: always
+
 volumes:
   pgdata:
+  grafana_data:
