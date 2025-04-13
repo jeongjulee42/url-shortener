@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:14
+    container_name: pg-urlshortener
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypass
+      POSTGRES_DB: shortener
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: always
+
+  url-service:
+    build: ./url-service
+    container_name: url-service
+    ports:
+      - "3001:3001"
+    environment:
+      PG_HOST: postgres
+      PG_PORT: 5432
+      PG_USER: myuser
+      PG_PASSWORD: mypass
+      PG_DATABASE: shortener
+    depends_on:
+      - postgres
+    restart: always
+
+volumes:
+  pgdata:
