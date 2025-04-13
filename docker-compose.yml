@@ -29,5 +29,32 @@ services:
       - postgres
     restart: always
 
+  redirect-service:
+    build: ./redirect-service
+    container_name: redirect-service
+    ports:
+      - "3002:3002"
+    environment:
+      PG_HOST: postgres
+      PG_PORT: 5432
+      PG_USER: myuser
+      PG_PASSWORD: mypass
+      PG_DATABASE: shortener
+    depends_on:
+      - postgres
+    restart: always
+
+  gateway:
+    build: ./gateway
+    container_name: gateway
+    ports:
+      - "80:80"
+    depends_on:
+      - url-service
+      - redirect-service
+    restart: always
+    volumes:
+      - ./nginx-logs:/var/log/nginx
+
 volumes:
   pgdata:
