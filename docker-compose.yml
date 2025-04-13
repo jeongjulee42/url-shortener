@@ -25,6 +25,7 @@ services:
       PG_USER: myuser
       PG_PASSWORD: mypass
       PG_DATABASE: shortener
+      JWT_SECRET: mysupersecretkey
     depends_on:
       - postgres
     restart: always
@@ -40,6 +41,7 @@ services:
       PG_USER: myuser
       PG_PASSWORD: mypass
       PG_DATABASE: shortener
+      JWT_SECRET: mysupersecretkey
     depends_on:
       - postgres
     restart: always

@@ -1,5 +1,6 @@
 import express from 'express';
 import { pool } from './db.js';
+import { verifyToken } from './middleware/auth.js';
 
 const app = express();
 const PORT = 3002;
@@ -39,11 +40,10 @@ app.get('/:code', async (req, res) => {
 });
 
 // 통계 조회 API
-app.get('/stats/:code', async (req, res) => {
+app.get('/stats/:code', verifyToken, async (req, res) => {
     const { code } = req.params;
 
     try {
-        // 클릭 수 + 마지막 클릭 시간
         const stats = await pool.query(
             `SELECT COUNT(*) AS clicks,
                     MAX(clicked_at) AS last_click
@@ -52,7 +52,6 @@ app.get('/stats/:code', async (req, res) => {
             [code]
         );
 
-        // 최근 클릭 정보 (최대 10개)
         const recentLogs = await pool.query(
             `SELECT clicked_at, ip_address, user_agent
             FROM click_logs
@@ -67,10 +66,10 @@ app.get('/stats/:code', async (req, res) => {
             total_clicks: parseInt(stats.rows[0].clicks),
             last_click: stats.rows[0].last_click,
             recent_logs: recentLogs.rows,
+            requested_by: req.user.email  // 토큰에서 가져온 사용자 이메일
         });
     } catch (err) {
-        console.error('Stats Error:', err);
-        res.status(500).send('Failed to fetch stats');
+        res.status(500).json({ error: 'Failed to fetch stats' });
     }
 });
 
