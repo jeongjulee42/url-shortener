@@ -26,22 +26,38 @@ jobs:
           --health-retries 5
 
     steps:
-      - name: 코드 내려받기
+      - name: Checkout source code
         uses: actions/checkout@v3
 
-      - name: Node.js 설치
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      - name: url-service 디렉토리로 이동
-        working-directory: ./url-service
-        run: echo "확인용"
-
-      - name: 의존성 설치
+      # url-service
+      - name: Install dependencies (url-service)
         working-directory: ./url-service
         run: npm install
 
-      - name: 테스트 실행 (없을 경우 생략됨)
-        working-directory: ./url-service
-        run: npm test || echo "테스트 없음"
+      - name: Docker build (url-service)
+        run: docker build -t url-service:test ./url-service
+
+      # auth-service
+      - name: Install dependencies (auth-service)
+        working-directory: ./auth-service
+        run: npm install
+
+      - name: Docker build (auth-service)
+        run: docker build -t auth-service:test ./auth-service
+
+      # redirect-service
+      - name: Install dependencies (redirect-service)
+        working-directory: ./redirect-service
+        run: npm install
+
+      - name: Docker build (redirect-service)
+        run: docker build -t redirect-service:test ./redirect-service
+
+      # gateway (NGINX)
+      - name: Docker build (gateway)
+        run: docker build -t gateway:test ./gateway
