@@ -37,6 +37,33 @@ app.post('/shorten', verifyToken, async (req, res) => {
         res.status(500).json({ error: 'Database error' });
     }
 });
+// 내 URL 목록 조회
+app.get('/my-urls', verifyToken, async (req, res) => {
+    const user_id = req.user.userId;
+    
+        try {
+        const result = await pool.query(
+                `SELECT short_code, original_url, created_at,
+                        (SELECT COUNT(*) FROM click_logs WHERE click_logs.short_code = urls.short_code) AS click_count
+                FROM urls
+                WHERE user_id = $1
+                ORDER BY created_at DESC`,
+                [user_id]
+            );
+    
+        const urls = result.rows.map(row => ({
+            short_url: `http://localhost/${row.short_code}`,
+            original_url: row.original_url,
+            created_at: row.created_at,
+            click_count: parseInt(row.click_count)
+        }));
+    
+        res.json({ urls });
+        } catch (err) {
+        console.error('My URLs Error:', err);
+        res.status(500).json({ error: 'Failed to fetch URLs' });
+    }
+});
 
 app.listen(PORT, () => {
     console.log(`✅ URL Service running on http://localhost:${PORT}`);
