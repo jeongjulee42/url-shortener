@@ -54,6 +54,7 @@ services:
     depends_on:
       - url-service
       - redirect-service
+      - auth-service
     restart: always
     volumes:
       - ./nginx-logs:/var/log/nginx
