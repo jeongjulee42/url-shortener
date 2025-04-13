@@ -29,10 +29,13 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v3
 
-      - name: Setup Node.js
+      - name: 🔧 Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
+
+      - name: DockerHub 로그인
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
       # url-service
       - name: Install dependencies (url-service)
@@ -40,7 +43,10 @@ jobs:
         run: npm install
 
       - name: Docker build (url-service)
-        run: docker build -t url-service:test ./url-service
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/url-service:latest ./url-service
+
+      - name: Docker push (url-service)
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/url-service:latest
 
       # auth-service
       - name: Install dependencies (auth-service)
@@ -48,7 +54,10 @@ jobs:
         run: npm install
 
       - name: Docker build (auth-service)
-        run: docker build -t auth-service:test ./auth-service
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/auth-service:latest ./auth-service
+
+      - name: Docker push (auth-service)
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/auth-service:latest
 
       # redirect-service
       - name: Install dependencies (redirect-service)
@@ -56,8 +65,14 @@ jobs:
         run: npm install
 
       - name: Docker build (redirect-service)
-        run: docker build -t redirect-service:test ./redirect-service
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/redirect-service:latest ./redirect-service
 
-      # gateway (NGINX)
+      - name: Docker push (redirect-service)
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/redirect-service:latest
+
+      # gateway
       - name: Docker build (gateway)
-        run: docker build -t gateway:test ./gateway
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/gateway:latest ./gateway
+
+      - name: Docker push (gateway)
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/gateway:latest
